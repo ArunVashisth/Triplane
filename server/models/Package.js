@@ -1,47 +1,52 @@
 const mongoose = require('mongoose');
 
 const packageSchema = mongoose.Schema({
-  title: { 
-    type: String, 
+  title: {
+    type: String,
     required: [true, 'Title is required'],
     trim: true
   },
-  location: { 
-    type: String, 
+  location: {
+    type: String,
     required: [true, 'Location is required'],
     trim: true
   },
-  price: { 
-    type: Number, 
+  continent: {
+    type: String,
+    required: [true, 'Continent is required'],
+    trim: true
+  },
+  price: {
+    type: Number,
     required: [true, 'Price is required'],
     min: [0, 'Price cannot be negative']
   },
-  description: { 
-    type: String, 
+  description: {
+    type: String,
     required: [true, 'Description is required'],
     trim: true
   },
-  image: { 
-    type: String, 
+  image: {
+    type: String,
     required: [true, 'Image URL is required']
   },
-  duration: { 
-    type: String, 
+  duration: {
+    type: String,
     required: [true, 'Duration is required'],
     trim: true
   },
-  maxGroupSize: { 
-    type: Number, 
+  maxGroupSize: {
+    type: Number,
     required: [true, 'Maximum group size is required'],
     min: [1, 'Group size must be at least 1']
   },
-  difficulty: { 
-    type: String, 
+  difficulty: {
+    type: String,
     enum: ['easy', 'medium', 'hard'],
     default: 'medium'
   },
-  featured: { 
-    type: Boolean, 
+  featured: {
+    type: Boolean,
     default: false
   }
 }, {

@@ -31,7 +31,7 @@ const upload = multer({
 // @desc    Upload image
 // @route   POST /api/upload
 // @access  Private/Admin
-router.post('/', protect, admin, upload.single('image'), async (req, res) => {
+router.post('/', protect, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No image file provided' });

@@ -1,0 +1,247 @@
+# ================================
+# Triplane Travel Agency
+# Git Ignore File
+# ================================
+
+# ============ Environment Variables ============
+# NEVER commit these - contain sensitive credentials!
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*.local
+
+# Server environment files
+server/.env
+server/.env.local
+server/.env.development
+server/.env.production
+
+# Client environment files
+client/.env
+client/.env.local
+client/.env.development
+client/.env.production
+
+# ============ Dependencies ============
+# Node modules for both client and server
+node_modules/
+*/node_modules/
+client/node_modules/
+server/node_modules/
+
+# Package lock files (optional - some teams commit these)
+# Uncomment if you want to ignore them
+# package-lock.json
+# */package-lock.json
+
+# Yarn files
+yarn.lock
+.yarn/
+.pnp.*
+
+# ============ Build Output ============
+# React build output
+client/build/
+build/
+dist/
+
+# Server build output (if applicable)
+server/build/
+server/dist/
+
+# Production files
+*.production
+
+# ============ Logs ============
+# Application logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.npm
+
+# OS logs
+*.log.*
+
+# ============ Operating System Files ============
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# ============ IDE & Editor Files ============
+# Visual Studio Code
+.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# JetBrains IDEs (WebStorm, IntelliJ, etc.)
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# ============ Testing ============
+# Coverage reports
+coverage/
+*.lcov
+.nyc_output/
+
+# Test files
+*.test.js.snap
+
+# ============ Temporary Files ============
+# Temp directories
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Cache files
+.cache/
+*.cache
+.parcel-cache/
+.eslintcache
+.stylelintcache
+
+# ============ MongoDB ============
+# Local MongoDB data (if running locally)
+data/
+mongodb/
+*.mongodb
+
+# ============ Cloudinary ============
+# Uploaded images cache (if any)
+uploads/
+public/uploads/
+
+# ============ Security & Credentials ============
+# Private keys
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+
+# AWS credentials
+.aws/
+*.aws
+
+# Google Cloud credentials
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+
+# ============ Miscellaneous ============
+# Backup files
+*.backup
+*.bak
+*.swp
+*.swo
+
+# Compressed files
+*.zip
+*.tar.gz
+*.rar
+
+# Documentation build
+docs/_build/
+
+# Python (if you have any Python scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+
+# ============ Optional: Development Files ============
+# Uncomment if you don't want to track these
+
+# ESLint
+# .eslintrc.js
+# .eslintrc.json
+
+# Prettier
+# .prettierrc
+# .prettierignore
+
+# ============ Keep These Files ============
+# (Using negation to explicitly include files that might be ignored by patterns above)
+
+# Keep example/template files
+!.env.example
+!env.example
+!*.example
+
+# Keep important config files
+!.gitignore
+!README.md
+!package.json
+
+# ============ Project Specific ============
+# Add any project-specific files/folders here
+
+# Seed data output (optional)
+seed-output/
+
+# User uploaded content (if stored locally)
+client/public/user-uploads/
+server/public/user-uploads/
+
+# ================================
+# End of .gitignore
+# ================================

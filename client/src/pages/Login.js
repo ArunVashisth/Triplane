@@ -31,7 +31,11 @@ const Login = () => {
       login(response.data.token, response.data.user);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      if (err.response?.data?.unverified) {
+        navigate('/verify-otp', { state: { email: err.response.data.email } });
+      } else {
+        setError(err.response?.data?.message || 'Login failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -78,8 +82,8 @@ const Login = () => {
             />
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="login-btn"
             disabled={loading}
           >

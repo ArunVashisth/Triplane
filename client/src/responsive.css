@@ -216,44 +216,93 @@
   .hide-mobile {
     display: none;
   }
-  
+
   .show-mobile {
     display: block;
   }
-  
+
   .responsive-flex,
   .responsive-flex-center {
     flex-direction: column;
   }
-  
+
   .responsive-form-row {
     grid-template-columns: 1fr;
   }
-  
+
   .responsive-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .responsive-grid-2 {
     grid-template-columns: 1fr;
   }
-  
+
   .responsive-grid-3 {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
-  
+
   .responsive-btn:hover {
     transform: none;
   }
-  
+
   .responsive-card:hover {
     transform: none;
   }
-  
+
   .responsive-container,
   .responsive-container-sm,
   .responsive-container-lg {
     padding: 0 clamp(0.5rem, 2vw, 1rem);
+  }
+}
+
+@media (max-width: 768px) {
+  .responsive-h1 {
+    font-size: 2.5rem;
+  }
+
+  .responsive-h2 {
+    font-size: 2rem;
+  }
+
+  .responsive-h3 {
+    font-size: 1.5rem;
+  }
+
+  .responsive-grid,
+  .responsive-grid-2,
+  .responsive-grid-3 {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .responsive-flex,
+  .responsive-flex-center {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 480px) {
+  .responsive-h1 {
+    font-size: 2rem;
+  }
+
+  .responsive-padding {
+    padding: 16px;
+  }
+
+  .responsive-btn {
+    width: 100%;
+    border-radius: var(--radius-md);
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+    /* Prevent iOS zoom */
   }
 }
 
@@ -262,15 +311,15 @@
   .responsive-grid {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   }
-  
+
   .responsive-grid-2 {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
-  
+
   .responsive-grid-3 {
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   }
-  
+
   .responsive-form-row {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
@@ -281,11 +330,11 @@
   .responsive-grid {
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   }
-  
+
   .responsive-grid-2 {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   }
-  
+
   .responsive-grid-3 {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
@@ -296,7 +345,7 @@
   .responsive-container {
     max-width: 1400px;
   }
-  
+
   .responsive-container-lg {
     max-width: 1600px;
   }
@@ -304,6 +353,7 @@
 
 /* ===== TOUCH-FRIENDLY ELEMENTS ===== */
 @media (max-width: 767px) {
+
   button,
   .responsive-btn,
   input[type="submit"],
@@ -313,22 +363,24 @@
     min-height: 44px;
     min-width: 44px;
   }
-  
+
   input,
   textarea,
   select {
-    font-size: 16px; /* Prevents zoom on iOS */
+    font-size: 16px;
+    /* Prevents zoom on iOS */
   }
 }
 
 /* ===== ACCESSIBILITY IMPROVEMENTS ===== */
 @media (prefers-reduced-motion: reduce) {
+
   .responsive-btn,
   .responsive-card,
   .responsive-input {
     transition: none;
   }
-  
+
   .responsive-btn:hover,
   .responsive-card:hover {
     transform: none;
@@ -340,11 +392,11 @@
   .responsive-card {
     border: 2px solid #2c3e50;
   }
-  
+
   .responsive-input {
     border-width: 2px;
   }
-  
+
   .responsive-btn {
     border: 2px solid currentColor;
   }
@@ -355,12 +407,12 @@
   .no-print {
     display: none !important;
   }
-  
+
   .responsive-card {
     box-shadow: none;
     border: 1px solid #000;
   }
-  
+
   .responsive-btn {
     background: none !important;
     color: #000 !important;
@@ -374,13 +426,13 @@
     background: #2c3e50;
     color: #ecf0f1;
   }
-  
+
   .responsive-input {
     background: #34495e;
     color: #ecf0f1;
     border-color: #5a6c7d;
   }
-  
+
   .responsive-input::placeholder {
     color: #bdc3c7;
   }
@@ -391,11 +443,11 @@
   .text-center-mobile {
     text-align: center;
   }
-  
+
   .text-left-mobile {
     text-align: left;
   }
-  
+
   .text-right-mobile {
     text-align: right;
   }
@@ -406,7 +458,7 @@
   .hidden-mobile {
     display: none !important;
   }
-  
+
   .visible-mobile {
     display: block !important;
   }
@@ -416,7 +468,7 @@
   .hidden-tablet {
     display: none !important;
   }
-  
+
   .visible-tablet {
     display: block !important;
   }
@@ -426,7 +478,7 @@
   .hidden-desktop {
     display: none !important;
   }
-  
+
   .visible-desktop {
     display: block !important;
   }

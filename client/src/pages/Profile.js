@@ -1,36 +1,89 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { bookingAPI, authAPI, uploadAPI } from '../services/api';
+import { bookingAPI, authAPI, uploadAPI, packageAPI } from '../services/api';
+import ImageCropperModal from '../components/ImageCropperModal';
 import './Profile.css';
 
 const Profile = () => {
-  const { user, login, isAdmin } = useContext(AuthContext);
-  const [bookings, setBookings] = useState([]);
+  const { user, login, isAdmin, logout } = useContext(AuthContext);
+  const [personalBookings, setPersonalBookings] = useState([]);
+  const [allBookings, setAllBookings] = useState([]);
+  const [allPackages, setAllPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [editMode, setEditMode] = useState(false);
+
+  // Photo states
   const [uploading, setUploading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
+
+  // Other modals
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
+  const [adminActiveTab, setAdminActiveTab] = useState('profile');
+
+  const [profileForm, setProfileForm] = useState({
+    name: '',
+    email: '',
+    location: '',
+    travelerClass: '',
+    seatPreference: '',
+    mealPreference: '',
+    passportExpiry: ''
+  });
+
+  const [packageForm, setPackageForm] = useState({
+    _id: '',
+    title: '',
+    location: '',
+    price: '',
+    duration: '',
+    maxGroupSize: '',
+    difficulty: 'medium',
+    description: '',
+    image: '',
+    featured: false
   });
 
   useEffect(() => {
-    // Only fetch bookings for non-admin users
-    if (!isAdmin()) {
-      fetchUserBookings();
-    } else {
+    if (user) {
+      setProfileForm({
+        name: user.name || '',
+        email: user.email || '',
+        location: user.location || 'Global Nomad',
+        travelerClass: user.travelerClass || 'Economy',
+        seatPreference: user.seatPreference || 'Window',
+        mealPreference: user.mealPreference || 'Standard',
+        passportExpiry: user.passportExpiry || 'Not Provided'
+      });
+
+      if (isAdmin()) {
+        fetchAdminData();
+      } else {
+        fetchUserBookings();
+      }
+    }
+  }, [user]);
+
+  const fetchAdminData = async () => {
+    try {
+      const [bookingsRes, packagesRes] = await Promise.all([
+        bookingAPI.getAllBookings(),
+        packageAPI.getAllPackages()
+      ]);
+      setAllBookings(bookingsRes.data);
+      setAllPackages(packagesRes.data);
+      setLoading(false);
+    } catch (err) {
+      setError('Failed to fetch admin data');
       setLoading(false);
     }
-  }, [isAdmin]);
+  };
 
   const fetchUserBookings = async () => {
     try {
       const response = await bookingAPI.getUserBookings();
-      setBookings(response.data);
+      setPersonalBookings(response.data);
       setLoading(false);
     } catch (err) {
       setError('Failed to fetch bookings');
@@ -38,353 +91,427 @@ const Profile = () => {
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handlePhotoUpload = async (e) => {
+  const handlePhotoSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('image', file);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setSelectedImage(reader.result);
+      setIsCropModalOpen(true);
+    };
+    reader.readAsDataURL(file);
+    // Clear input so same file can be selected again
+    e.target.value = '';
+  };
 
+  const handleCropComplete = async (croppedFile) => {
+    setIsCropModalOpen(false);
     setUploading(true);
+
+    const formData = new FormData();
+    formData.append('image', croppedFile);
+
     try {
       const response = await uploadAPI.uploadImage(formData);
-
-      // Update user profile with new photo URL
       const updateResponse = await authAPI.updateProfile({
         profilePhoto: response.data.url
       });
-
-      // Update context with new user data
       login(localStorage.getItem('token'), updateResponse.data);
-      alert('Profile photo updated successfully!');
     } catch (err) {
-      setError('Failed to upload photo');
+      alert('Failed to upload photo');
     } finally {
       setUploading(false);
+      setSelectedImage(null);
     }
   };
 
-  const handleProfileUpdate = async (e) => {
-    e.preventDefault();
-    
-    if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
-      setError('New passwords do not match');
-      return;
-    }
-
+  const handleStatusChange = async (bookingId, newStatus) => {
     try {
-      const updateData = {
-        name: formData.name,
-        email: formData.email
-      };
+      await bookingAPI.updateBookingStatus(bookingId, newStatus);
+      fetchAdminData();
+    } catch (err) {
+      alert('Failed to update booking status');
+    }
+  };
 
-      if (formData.newPassword) {
-        updateData.currentPassword = formData.currentPassword;
-        updateData.newPassword = formData.newPassword;
+  const handleDeletePackage = async (pkgId) => {
+    if (window.confirm('Are you sure you want to delete this package?')) {
+      try {
+        await packageAPI.deletePackage(pkgId);
+        fetchAdminData();
+      } catch (err) {
+        alert('Failed to delete package');
       }
-
-      const response = await authAPI.updateProfile(updateData);
-
-      login(localStorage.getItem('token'), response.data);
-      setEditMode(false);
-      setFormData({
-        name: response.data.name,
-        email: response.data.email,
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
-      alert('Profile updated successfully!');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update profile');
     }
   };
 
-  const cancelBooking = async (bookingId) => {
-    if (!window.confirm('Are you sure you want to cancel this booking?')) return;
+  const handleEditPackage = (pkg) => {
+    setPackageForm({
+      _id: pkg._id,
+      title: pkg.title,
+      location: pkg.location,
+      price: pkg.price,
+      duration: pkg.duration,
+      maxGroupSize: pkg.maxGroupSize,
+      difficulty: pkg.difficulty,
+      description: pkg.description,
+      image: pkg.image,
+      featured: pkg.featured
+    });
+    setIsPackageModalOpen(true);
+  };
 
+  const handlePackageInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setPackageForm({
+      ...packageForm,
+      [name]: type === 'checkbox' ? checked : value
+    });
+  };
+
+  const handleSubmitPackage = async (e) => {
+    e.preventDefault();
     try {
-      await bookingAPI.updateBookingStatus(bookingId, 'cancelled');
-
-      fetchUserBookings();
-      alert('Booking cancelled successfully!');
+      if (packageForm._id) {
+        await packageAPI.updatePackage(packageForm._id, packageForm);
+      } else {
+        await packageAPI.createPackage(packageForm);
+      }
+      setIsPackageModalOpen(false);
+      fetchAdminData();
     } catch (err) {
-      setError('Failed to cancel booking');
+      alert('Failed to save package');
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'confirmed': return '#28a745';
-      case 'pending': return '#ffc107';
-      case 'cancelled': return '#dc3545';
-      case 'completed': return '#17a2b8';
-      default: return '#6c757d';
+  const handleProfileSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await authAPI.updateProfile(profileForm);
+      login(localStorage.getItem('token'), response.data);
+      setIsModalOpen(false);
+    } catch (err) {
+      alert('Failed to update profile');
     }
   };
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'confirmed': return 'CONFIRMED';
-      case 'pending': return 'PENDING';
-      case 'cancelled': return 'CANCELLED';
-      case 'completed': return 'COMPLETED';
-      default: return status.toUpperCase();
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="profile-loading">
-        <div className="loading-spinner"></div>
-        <p>Loading your profile...</p>
-      </div>
-    );
-  }
+  if (loading) return <div className="profile-loading"><div className="loading-spinner"></div></div>;
 
   return (
     <div className="profile-page">
-      <div className="container">
-        {/* Profile Header */}
-        <div className="profile-header">
-          <div className="profile-photo-section">
-            <div className="profile-photo">
-              <img 
-                src={user?.profilePhoto || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=2070&auto=format&fit=crop'} 
-                alt={user?.name} 
+      <div className="profile-header-banner">
+        <div className="profile-header-content">
+          <div className="profile-avatar-wrapper">
+            {uploading ? (
+              <div className="avatar-loading"><div className="loading-spinner-sm"></div></div>
+            ) : (
+              <img src={user?.profilePhoto || 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&q=80&w=200'} alt={user?.name} />
+            )}
+            <div className="avatar-edit-btn">
+              <label htmlFor="photo-upload-profile"><i className="fas fa-camera"></i></label>
+              <input
+                id="photo-upload-profile"
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoSelect}
+                style={{ display: 'none' }}
               />
-              <div className="photo-upload">
-                <label htmlFor="photo-upload" className="upload-btn">
-                  <i className="fas fa-camera"></i>
-                </label>
-                <input
-                  id="photo-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  style={{ display: 'none' }}
-                />
-                {uploading && <div className="upload-spinner"></div>}
-              </div>
-            </div>
-            <div className="profile-info">
-              <h1>{user?.name}</h1>
-              <p className="user-email">{user?.email}</p>
-              <p className="user-role">Role: {user?.role}</p>
             </div>
           </div>
-          <button 
-            className="edit-profile-btn"
-            onClick={() => setEditMode(!editMode)}
-          >
-            {editMode ? 'Cancel' : 'Edit Profile'}
-          </button>
+          <div className="profile-user-info">
+            <h1>{user?.name} {isAdmin() && <span className="admin-badge">Admin</span>}</h1>
+            <p>
+              <span>{isAdmin() ? 'Administrator' : 'Travel Enthusiast'}</span>
+              <span><i className="far fa-envelope"></i> {user?.email}</span>
+              <span><i className="fas fa-map-marker-alt"></i> {user?.location}</span>
+            </p>
+          </div>
+          <div className="profile-header-actions">
+            <button className="nav-btn nav-btn-outline" onClick={() => setIsModalOpen(true)}>
+              <i className="fas fa-edit"></i> Edit Profile
+            </button>
+            <button className="nav-btn nav-btn-primary" onClick={logout}>
+              <i className="fas fa-sign-out-alt"></i> Logout
+            </button>
+          </div>
         </div>
+      </div>
 
-        {/* Profile Form */}
-        {editMode && (
-          <div className="profile-form-section">
-            <h2>Edit Profile</h2>
-            <form onSubmit={handleProfileUpdate} className="profile-form">
-              <div className="form-group">
-                <label htmlFor="name">Full Name</label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="email">Email</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div className="password-section">
-                <h3>Change Password (Optional)</h3>
-                <div className="form-group">
-                  <label htmlFor="currentPassword">Current Password</label>
-                  <input
-                    type="password"
-                    id="currentPassword"
-                    name="currentPassword"
-                    value={formData.currentPassword}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="newPassword">New Password</label>
-                  <input
-                    type="password"
-                    id="newPassword"
-                    name="newPassword"
-                    value={formData.newPassword}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="confirmPassword">Confirm New Password</label>
-                  <input
-                    type="password"
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-
-              {error && <div className="error-message">{error}</div>}
-
-              <div className="form-actions">
-                <button type="submit" className="btn-save">
-                  Save Changes
-                </button>
-                <button 
-                  type="button" 
-                  className="btn-cancel"
-                  onClick={() => setEditMode(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+      <div className="container" style={{ marginTop: '30px' }}>
+        {isAdmin() && (
+          <div className="admin-controls">
+            <div className="admin-tabs">
+              <button
+                className={`admin-tab ${adminActiveTab === 'profile' ? 'active' : ''}`}
+                onClick={() => setAdminActiveTab('profile')}
+              >
+                <i className="fas fa-user-circle"></i> My Dashboard
+              </button>
+              <button
+                className={`admin-tab ${adminActiveTab === 'bookings' ? 'active' : ''}`}
+                onClick={() => setAdminActiveTab('bookings')}
+              >
+                <i className="fas fa-calendar-check"></i> All Bookings
+              </button>
+              <button
+                className={`admin-tab ${adminActiveTab === 'packages' ? 'active' : ''}`}
+                onClick={() => setAdminActiveTab('packages')}
+              >
+                <i className="fas fa-box"></i> Manage Packages
+              </button>
+            </div>
           </div>
         )}
 
-        {/* Bookings Section - Only show for non-admin users */}
-        {!isAdmin() && (
-          <div className="bookings-section">
-            <h2>My Bookings</h2>
-            {bookings.length === 0 ? (
-              <div className="no-bookings">
-                <i className="fas fa-calendar-times"></i>
-                <h3>No bookings yet</h3>
-                <p>Start exploring our amazing destinations and make your first booking!</p>
-                <a href="/" className="btn-explore">Explore Tours</a>
+        {(!isAdmin() || adminActiveTab === 'profile') && (
+          <>
+            <div className="profile-stats-row">
+              <div className="stat-box">
+                <div className="stat-icon trips"><i className="fas fa-plane"></i></div>
+                <div className="stat-text"><h3>{isAdmin() ? allBookings.length : personalBookings.length}</h3><span>{isAdmin() ? 'Total Bookings' : 'Trips Taken'}</span></div>
               </div>
-            ) : (
-              <div className="bookings-grid">
-                {bookings.map((booking) => {
-                  // Add null checks to prevent runtime errors
-                  if (!booking.packageId) {
-                    return (
-                      <div key={booking._id} className="booking-card error-card">
-                        <div className="booking-content">
-                          <h3>Package Not Found</h3>
-                          <p>This booking references a package that no longer exists.</p>
-                          <div className="booking-details">
-                            <div className="detail-item">
-                              <i className="fas fa-calendar"></i>
-                              <span>Booking Date: {new Date(booking.bookingDate).toLocaleDateString()}</span>
-                            </div>
-                            <div className="detail-item">
-                              <i className="fas fa-users"></i>
-                              <span>People: {booking.numberOfPeople}</span>
-                            </div>
-                            <div className="detail-item">
-                              <i className="fas fa-dollar-sign"></i>
-                              <span>Total: ${booking.totalPrice}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  }
+              <div className="stat-box">
+                <div className="stat-icon saved"><i className="far fa-heart"></i></div>
+                <div className="stat-text"><h3>{isAdmin() ? allPackages.length : user?.savedDestinations?.length || 0}</h3><span>{isAdmin() ? 'Live Packages' : 'Saved Places'}</span></div>
+              </div>
+              <div className="stat-box">
+                <div className="stat-icon upcoming"><i className="fas fa-award"></i></div>
+                <div className="stat-text"><h3>{user?.membershipPoints || 1250}</h3><span>Member Points</span></div>
+              </div>
+            </div>
 
-                  return (
-                    <div key={booking._id} className="booking-card">
-                      <div className="booking-image">
-                        <img 
-                          src={booking.packageId.image || '/placeholder-image.jpg'} 
-                          alt={booking.packageId.title || 'Package Image'} 
-                          onError={(e) => {
-                            e.target.src = '/placeholder-image.jpg';
-                          }}
-                        />
-                        <div 
-                          className="status-badge"
-                          style={{ backgroundColor: getStatusColor(booking.status) }}
-                        >
-                          {getStatusText(booking.status)}
+            <div className="profile-main-grid">
+              <div className="profile-left-col">
+                <div className="dashboard-card">
+                  <h2><i className="fas fa-paper-plane"></i> {isAdmin() ? 'Recent System Activity' : 'My Trips'}</h2>
+                  <div className="history-list">
+                    {(isAdmin() ? allBookings.slice(0, 5) : personalBookings).map((booking) => (
+                      <div key={booking._id} className="history-item">
+                        <div className="history-thumb"><img src={booking.packageId?.image} alt="Tour" /></div>
+                        <div className="history-details">
+                          <h4>{booking.packageId?.title}</h4>
+                          <div className="history-meta">
+                            {isAdmin() && <span><i className="far fa-user"></i> {booking.userId?.name}</span>}
+                            <span><i className="far fa-calendar"></i> {new Date(booking.bookingDate).toLocaleDateString()}</span>
+                          </div>
                         </div>
+                        <div className={`status-badge ${booking.status.toLowerCase()}`}>{booking.status}</div>
                       </div>
-                      <div className="booking-content">
-                        <h3>{booking.packageId.title || 'Untitled Package'}</h3>
-                        <p className="booking-location">
-                          <i className="fas fa-map-marker-alt"></i>
-                          {booking.packageId.location || 'Location not specified'}
-                        </p>
-                        <div className="booking-details">
-                          <div className="detail-item">
-                            <i className="fas fa-calendar"></i>
-                            <span>Booking Date: {new Date(booking.bookingDate).toLocaleDateString()}</span>
-                          </div>
-                          <div className="detail-item">
-                            <i className="fas fa-users"></i>
-                            <span>People: {booking.numberOfPeople}</span>
-                          </div>
-                          <div className="detail-item">
-                            <i className="fas fa-dollar-sign"></i>
-                            <span>Total: ${booking.totalPrice}</span>
-                          </div>
-                          <div className="detail-item">
-                            <i className="fas fa-clock"></i>
-                            <span>Duration: {booking.duration || booking.packageId.duration || 'Not specified'}</span>
-                          </div>
-                          <div className="detail-item">
-                            <i className="fas fa-users"></i>
-                            <span>Max Group: {booking.packageId.maxGroupSize || 'Not specified'} people</span>
-                          </div>
-                        </div>
-                        {booking.specialRequests && (
-                          <div className="special-requests">
-                            <strong>Special Requests:</strong>
-                            <p>{booking.specialRequests}</p>
-                          </div>
-                        )}
-                        <div className="booking-actions">
-                          {booking.status === 'pending' && (
-                            <button 
-                              className="btn-cancel-booking"
-                              onClick={() => cancelBooking(booking._id)}
-                            >
-                              Cancel Booking
-                            </button>
-                          )}
-                          <span className="booking-date">
-                            Booked on: {new Date(booking.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                    ))}
+                  </div>
+                </div>
               </div>
-            )}
+
+              <div className="profile-right-col">
+                <div className="dashboard-card">
+                  <h2><i className="fas fa-cog"></i> Preferences</h2>
+                  <div className="pref-grid">
+                    <div className="pref-item"><label>Travel Class</label><span>{user?.travelerClass}</span></div>
+                    <div className="pref-item"><label>Seat</label><span>{user?.seatPreference}</span></div>
+                    <div className="pref-item"><label>Meal</label><span>{user?.mealPreference}</span></div>
+                    <div className="pref-item"><label>Passport</label><span>{user?.passportExpiry}</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {isAdmin() && adminActiveTab === 'bookings' && (
+          <div className="admin-data-card">
+            <div className="admin-header-row">
+              <h2>All Client Bookings</h2>
+            </div>
+            <div className="admin-table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Customer</th>
+                    <th>Destination</th>
+                    <th>Date</th>
+                    <th>Guests</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allBookings.map(b => (
+                    <tr key={b._id}>
+                      <td><strong>{b.userId?.name}</strong><br /><small>{b.userId?.email}</small></td>
+                      <td>{b.packageId?.title}</td>
+                      <td>{new Date(b.bookingDate).toLocaleDateString()}</td>
+                      <td>{b.numberOfPeople}</td>
+                      <td>${b.totalPrice}</td>
+                      <td>
+                        <select
+                          className={`status-select ${b.status}`}
+                          value={b.status}
+                          onChange={(e) => handleStatusChange(b._id, e.target.value)}
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="confirmed">Confirmed</option>
+                          <option value="cancelled">Cancelled</option>
+                          <option value="completed">Completed</option>
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {isAdmin() && adminActiveTab === 'packages' && (
+          <div className="admin-data-card">
+            <div className="admin-header-row">
+              <h2>Inventory Management</h2>
+              <button className="nav-btn nav-btn-primary" onClick={() => {
+                setPackageForm({ _id: '', title: '', location: '', price: '', duration: '', maxGroupSize: '', difficulty: 'medium', description: '', image: '', featured: false });
+                setIsPackageModalOpen(true);
+              }}>
+                <i className="fas fa-plus"></i> Add New Package
+              </button>
+            </div>
+            <div className="admin-table-container">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Package</th>
+                    <th>Location</th>
+                    <th>Price</th>
+                    <th>Duration</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allPackages.map(p => (
+                    <tr key={p._id}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <img src={p.image} alt="" style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }} />
+                          <strong>{p.title}</strong>
+                        </div>
+                      </td>
+                      <td>{p.location}</td>
+                      <td>${p.price}</td>
+                      <td>{p.duration}</td>
+                      <td className="admin-actions">
+                        <button className="admin-btn-icon btn-edit" onClick={() => handleEditPackage(p)}><i className="fas fa-edit"></i></button>
+                        <button className="admin-btn-icon btn-delete" onClick={() => handleDeletePackage(p._id)}><i className="fas fa-trash"></i></button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
+
+      {/* Profile Modal */}
+      {isModalOpen && (
+        <div className="modal-overlay">
+          <div className="profile-modal">
+            <div className="modal-header"><h3>Update Profile</h3><button onClick={() => setIsModalOpen(false)}><i className="fas fa-times"></i></button></div>
+            <form onSubmit={handleProfileSubmit} className="modal-body">
+              <div className="form-group-row">
+                <div className="form-group"><label>Name</label><input name="name" value={profileForm.name} onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })} /></div>
+                <div className="form-group"><label>Location</label><input name="location" value={profileForm.location} onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })} /></div>
+              </div>
+              <div className="form-group-row">
+                <div className="form-group">
+                  <label>Travel Class</label>
+                  <select name="travelerClass" value={profileForm.travelerClass} onChange={(e) => setProfileForm({ ...profileForm, travelerClass: e.target.value })}>
+                    <option value="Economy">Economy</option>
+                    <option value="Premium Economy">Premium Economy</option>
+                    <option value="Business">Business</option>
+                    <option value="First Class">First Class</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Seat Preference</label>
+                  <select name="seatPreference" value={profileForm.seatPreference} onChange={(e) => setProfileForm({ ...profileForm, seatPreference: e.target.value })}>
+                    <option value="Window">Window</option>
+                    <option value="Aisle">Aisle</option>
+                    <option value="Middle">Middle</option>
+                    <option value="Extra Legroom">Extra Legroom</option>
+                  </select>
+                </div>
+              </div>
+              <div className="form-group-row">
+                <div className="form-group">
+                  <label>Meal Preference</label>
+                  <select name="mealPreference" value={profileForm.mealPreference} onChange={(e) => setProfileForm({ ...profileForm, mealPreference: e.target.value })}>
+                    <option value="Standard">Standard</option>
+                    <option value="Vegetarian">Vegetarian</option>
+                    <option value="Vegan">Vegan</option>
+                    <option value="Halal">Halal</option>
+                    <option value="Gluten-Free">Gluten-Free</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Passport Expiry</label>
+                  <input name="passportExpiry" placeholder="MM/YY or DD/MM/YYYY" value={profileForm.passportExpiry} onChange={(e) => setProfileForm({ ...profileForm, passportExpiry: e.target.value })} />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="nav-btn nav-btn-outline" onClick={() => setIsModalOpen(false)}>Cancel</button>
+                <button type="submit" className="nav-btn nav-btn-primary">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Crop Modal */}
+      {isCropModalOpen && (
+        <ImageCropperModal
+          image={selectedImage}
+          onCropComplete={handleCropComplete}
+          onCancel={() => {
+            setIsCropModalOpen(false);
+            setSelectedImage(null);
+          }}
+        />
+      )}
+
+      {/* Package Modal */}
+      {isPackageModalOpen && (
+        <div className="modal-overlay">
+          <div className="profile-modal" style={{ maxWidth: '800px' }}>
+            <div className="modal-header"><h3>{packageForm._id ? 'Edit Package' : 'Create New Package'}</h3><button onClick={() => setIsPackageModalOpen(false)}><i className="fas fa-times"></i></button></div>
+            <form onSubmit={handleSubmitPackage} className="modal-body">
+              <div className="form-group-row">
+                <div className="form-group"><label>Title</label><input name="title" value={packageForm.title} onChange={handlePackageInputChange} required /></div>
+                <div className="form-group"><label>Location</label><input name="location" value={packageForm.location} onChange={handlePackageInputChange} required /></div>
+              </div>
+              <div className="form-group-row">
+                <div className="form-group"><label>Price ($)</label><input type="number" name="price" value={packageForm.price} onChange={handlePackageInputChange} required /></div>
+                <div className="form-group"><label>Duration</label><input name="duration" value={packageForm.duration} onChange={handlePackageInputChange} placeholder="e.g. 7 Days, 6 Nights" required /></div>
+              </div>
+              <div className="form-group-row">
+                <div className="form-group">
+                  <label>Difficulty</label>
+                  <select name="difficulty" value={packageForm.difficulty} onChange={handlePackageInputChange}>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                  </select>
+                </div>
+                <div className="form-group"><label>Group Size</label><input type="number" name="maxGroupSize" value={packageForm.maxGroupSize} onChange={handlePackageInputChange} required /></div>
+              </div>
+              <div className="form-group"><label>Image URL</label><input name="image" value={packageForm.image} onChange={handlePackageInputChange} required /></div>
+              <div className="form-group"><label>Description</label><textarea name="description" value={packageForm.description} onChange={handlePackageInputChange} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)', minHeight: '100px' }} required /></div>
+              <div className="modal-footer">
+                <button type="button" className="nav-btn nav-btn-outline" onClick={() => setIsPackageModalOpen(false)}>Cancel</button>
+                <button type="submit" className="nav-btn nav-btn-primary">Save Package</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
