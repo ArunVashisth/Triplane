@@ -127,7 +127,7 @@ const PackageDetails = () => {
             <h1 className="package-title">{packageData.title}</h1>
 
             <div className="package-price">
-              Starting from <span className="price-amount">${packageData.price}</span> per person
+              Starting from <span className="price-amount">₹{packageData.price}</span> per person
             </div>
 
             <p className="package-description">{packageData.description}</p>

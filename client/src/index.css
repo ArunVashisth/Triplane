@@ -150,6 +150,24 @@ h6 {
   background: var(--text-muted);
 }
 
+/* Fix for white autofill in dark mode */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-light) inset !important;
+  -webkit-text-fill-color: var(--text-dark) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Premium Form Group Enhancements */
+.form-group input,
+.form-group select,
+.form-group textarea {
+  color-scheme: dark;
+  /* Helps with date pickers/etc in dark mode */
+}
+
 /* Global Responsive Utilities */
 .container {
   max-width: 1400px;

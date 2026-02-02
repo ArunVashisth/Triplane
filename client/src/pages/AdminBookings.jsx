@@ -135,7 +135,7 @@ const AdminBookings = () => {
                         </div>
                         <div className="detail-item">
                           <i className="fas fa-dollar-sign"></i>
-                          <span>Total: ${booking.totalPrice}</span>
+                          <span>Total: ₹{booking.totalPrice}</span>
                         </div>
                       </div>
                     </div>
@@ -184,7 +184,7 @@ const AdminBookings = () => {
                       </div>
                       <div className="detail-item">
                         <i className="fas fa-dollar-sign"></i>
-                        <span>Total: ${booking.totalPrice}</span>
+                        <span>Total: ₹{booking.totalPrice}</span>
                       </div>
                       <div className="detail-item">
                         <i className="fas fa-clock"></i>

@@ -9,6 +9,19 @@ const Home = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const navigate = useNavigate();
 
+  const contactLinks = [
+    { icon: 'fab fa-github', label: 'GitHub Profile', url: 'https://github.com/ArunVashisth' },
+    { icon: 'far fa-envelope', label: 'Email Me', url: 'mailto:arunvashisth80@gmail.com' },
+    { icon: 'fas fa-briefcase', label: 'My Portfolio', url: 'https://portfolio-five-sigma-yvjym7mfdi.vercel.app/' },
+    { icon: 'fab fa-linkedin', label: 'LinkedIn', url: 'https://www.linkedin.com/in/arun-vashisth-27b6a9362/' }
+  ];
+
+  const [searchData, setSearchData] = useState({
+    destination: '',
+    checkIn: '',
+    guests: ''
+  });
+
   useEffect(() => {
     fetchPackages();
 
@@ -30,6 +43,16 @@ const Home = () => {
     }
   };
 
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (searchData.destination) params.append('destination', searchData.destination);
+    if (searchData.checkIn) params.append('checkIn', searchData.checkIn);
+    if (searchData.guests) params.append('guests', searchData.guests);
+
+    navigate(`/packages?${params.toString()}`);
+  };
+
   const featuredPackages = Array.isArray(packages) ? packages.filter(pkg => pkg.featured).slice(0, 6) : [];
 
   const scrollToTop = () => {
@@ -46,23 +69,37 @@ const Home = () => {
           <h1>Travel Beyond Your Limits</h1>
           <p>Discover hidden gems, vibrant cities, and serene landscapes with our curated travel experiences.</p>
 
-          <div className="search-container">
+          <form className="search-container" onSubmit={handleSearch}>
             <div className="search-field">
               <label><i className="fas fa-map-marker-alt"></i> Where to?</label>
-              <input type="text" placeholder="Dream destination..." />
+              <input
+                type="text"
+                placeholder="Dream destination..."
+                value={searchData.destination}
+                onChange={(e) => setSearchData({ ...searchData, destination: e.target.value })}
+              />
             </div>
             <div className="search-field">
               <label><i className="far fa-calendar-alt"></i> Check in</label>
-              <input type="date" />
+              <input
+                type="date"
+                value={searchData.checkIn}
+                onChange={(e) => setSearchData({ ...searchData, checkIn: e.target.value })}
+              />
             </div>
             <div className="search-field">
               <label><i className="fas fa-user-friends"></i> Guests</label>
-              <input type="number" placeholder="How many?" />
+              <input
+                type="number"
+                placeholder="How many?"
+                value={searchData.guests}
+                onChange={(e) => setSearchData({ ...searchData, guests: e.target.value })}
+              />
             </div>
-            <button className="search-btn">
+            <button type="submit" className="search-btn">
               <i className="fas fa-search"></i>
             </button>
-          </div>
+          </form>
         </div>
       </section>
 
@@ -84,7 +121,7 @@ const Home = () => {
                 <div key={pkg._id} className="destination-card" onClick={() => navigate(`/package/${pkg._id}`)}>
                   <div className="card-image">
                     <img src={pkg.image} alt={pkg.title} />
-                    <div className="price-badge">${pkg.price}</div>
+                    <div className="price-badge">₹{pkg.price}</div>
                     <div className="heart-btn" onClick={(e) => { e.stopPropagation(); }}>
                       <i className="far fa-heart"></i>
                     </div>
@@ -112,53 +149,42 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Trust Section */}
-      <section style={{ background: 'var(--bg-light)', padding: '100px 0' }}>
-        <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '40px', textAlign: 'center' }}>
-          <div className="trust-item">
-            <i className="fas fa-globe-americas" style={{ fontSize: '2.5rem', color: 'var(--accent)', marginBottom: '20px' }}></i>
-            <h4 style={{ fontSize: '1.2rem', marginBottom: '10px' }}>500+ Destinations</h4>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Explore the world with our vast selection of tours.</p>
-          </div>
-          <div className="trust-item">
-            <i className="fas fa-shield-alt" style={{ fontSize: '2.5rem', color: 'var(--accent)', marginBottom: '20px' }}></i>
-            <h4 style={{ fontSize: '1.2rem', marginBottom: '10px' }}>Safe & Secure</h4>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Your safety is our priority with verified operators.</p>
-          </div>
-          <div className="trust-item">
-            <i className="fas fa-headset" style={{ fontSize: '2.5rem', color: 'var(--accent)', marginBottom: '20px' }}></i>
-            <h4 style={{ fontSize: '1.2rem', marginBottom: '10px' }}>24/7 Support</h4>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Our team is here to help you anytime, anywhere.</p>
+      {/* Contact Me Section - Premium Grid */}
+      <section className="contact-me-section">
+        <div className="container">
+          <div className="contact-card-premium">
+            <div className="contact-info">
+              <span className="subtitle">Let's Connect</span>
+              <h2>Ready for your next adventure?</h2>
+              <p>Feel free to reach out for business inquiries, collaboration, or just a quick travel chat!</p>
+            </div>
+            <div className="contact-links-grid">
+              {contactLinks.map((link, index) => (
+                <a key={index} href={link.url} target="_blank" rel="noopener noreferrer" className="contact-box">
+                  <div className="icon-circle"><i className={link.icon}></i></div>
+                  <span>{link.label}</span>
+                </a>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Simple Footer to match the clean look of the images */}
-      <footer className="footer">
+      {/* Trust Section - Enhanced */}
+      <section className="partners-section">
         <div className="container">
-          <div className="footer-content">
-            <div className="footer-section">
-              <div className="nav-logo">
-                <div className="logo-icon"><i className="fas fa-paper-plane"></i></div>
-                <span className="logo-text">triplane</span>
-              </div>
-              <p style={{ marginTop: '15px' }}>Discover the world one destination at a time. Triplane is your trusted partner for unforgettable travel experiences.</p>
-            </div>
-            <div className="footer-section">
-              <h4>Quick Links</h4>
-              <ul>
-                <li><Link to="/">Home</Link></li>
-                <li><Link to="/packages">Destinations</Link></li>
-                <li><Link to="/packages">Packages</Link></li>
-                <li><Link to="/about">About Us</Link></li>
-              </ul>
-            </div>
+          <div className="section-header">
+            <span className="subtitle">Our Global Partners</span>
+            <h2>Trusted by the Best</h2>
           </div>
-          <div style={{ textAlign: 'center', marginTop: '40px', paddingTop: '20px', borderTop: '1px solid #e2e8f0', color: '#94a3b8', fontSize: '0.9rem' }}>
-            &copy; 2024 Triplane. All rights reserved.
+          <div className="partners-grid">
+            <div className="partner-logo"><i className="fab fa-expedia"></i> Expedia</div>
+            <div className="partner-logo"><i className="fab fa-airbnb"></i> Airbnb</div>
+            <div className="partner-logo"><i className="fab fa-tripadvisor"></i> TripAdvisor</div>
+            <div className="partner-logo"><i className="fab fa-booking"></i> Booking.com</div>
           </div>
         </div>
-      </footer>
+      </section>
 
       {showScrollTop && (
         <button className="scroll-top-btn" onClick={scrollToTop}>

@@ -67,10 +67,29 @@
   width: 100%;
 }
 
+/* Aggressive fix for autofill and dark mode contrast */
+.form-group input:-webkit-autofill,
+.form-group input:-webkit-autofill:hover,
+.form-group input:-webkit-autofill:focus,
+.form-group input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-light) inset !important;
+  -webkit-text-fill-color: var(--text-dark) !important;
+}
+
+[data-theme='dark'] .form-group input {
+  background: var(--bg-accent) !important;
+  /* Slightly lighter for depth */
+  color: var(--text-dark) !important;
+}
+
+[data-theme='dark'] .form-group input:focus {
+  background: var(--bg-card) !important;
+}
+
 .form-group input:focus {
   border-color: var(--accent);
   background: var(--bg-card);
-  box-shadow: 0 0 0 4px rgba(255, 90, 85, 0.1);
+  box-shadow: 0 0 0 4px rgba(255, 90, 95, 0.1);
   outline: none;
 }
 

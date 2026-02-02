@@ -1,7 +1,6 @@
 /* Home Page - Modern Travel Aesthetic */
 .home {
   padding-top: 0;
-  /* Hero overlaps with translucent header */
 }
 
 /* Hero Section */
@@ -22,7 +21,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+  background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
   background-position: center;
   background-size: cover;
   transition: transform 10s ease-out;
@@ -86,7 +85,7 @@
 }
 
 [data-theme='dark'] .search-container {
-  background: rgba(18, 27, 38, 0.8);
+  background: rgba(18, 27, 38, 0.9);
   backdrop-filter: blur(20px);
 }
 
@@ -221,13 +220,16 @@
   position: absolute;
   top: 20px;
   left: 20px;
-  background: white;
-  color: var(--text-dark);
-  padding: 6px 16px;
+  background: var(--bg-card);
+  backdrop-filter: blur(10px);
+  color: var(--accent);
+  padding: 8px 18px;
   border-radius: var(--radius-full);
   font-weight: 800;
-  font-size: 0.9rem;
+  font-size: 1rem;
   box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+  z-index: 5;
 }
 
 .heart-btn {
@@ -289,6 +291,122 @@
   gap: 6px;
 }
 
+/* Contact Me Section */
+.contact-me-section {
+  padding: 100px 0;
+  background: var(--bg-light);
+}
+
+.contact-card-premium {
+  background: var(--bg-main);
+  border-radius: var(--radius-xl);
+  padding: 60px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
+}
+
+.contact-info h2 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.contact-info p {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+.contact-links-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.contact-box {
+  background: var(--bg-light);
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  transition: var(--transition);
+  border: 1px solid transparent;
+}
+
+.contact-box:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent);
+  background: var(--bg-main);
+}
+
+.icon-circle {
+  width: 50px;
+  height: 50px;
+  background: var(--bg-main);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--accent);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.contact-box:hover .icon-circle {
+  background: var(--accent);
+  color: white;
+}
+
+.contact-box span {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-dark);
+}
+
+/* Partners Section */
+.partners-section {
+  padding: 100px 0;
+  background: var(--bg-main);
+}
+
+.partners-grid {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 40px;
+}
+
+.partner-logo {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  filter: grayscale(1);
+  opacity: 0.5;
+  transition: var(--transition);
+}
+
+.partner-logo:hover {
+  filter: grayscale(0);
+  opacity: 1;
+  color: var(--text-dark);
+}
+
+.partner-logo i {
+  font-size: 2rem;
+  color: var(--accent);
+}
+
 /* Animations */
 @keyframes fadeInUp {
   from {
@@ -299,6 +417,15 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@media (max-width: 992px) {
+  .contact-card-premium {
+    grid-template-columns: 1fr;
+    padding: 40px;
+    gap: 40px;
+    text-align: center;
   }
 }
 
@@ -349,21 +476,12 @@
     padding: 60px 0;
   }
 
-  .section-header {
-    margin-bottom: 40px;
-  }
-
   .section-header h2 {
     font-size: 2.2rem;
   }
 
-  .destinations-grid {
+  .contact-links-grid {
     grid-template-columns: 1fr;
-    gap: 24px;
-  }
-
-  .card-image {
-    height: 250px;
   }
 }
 

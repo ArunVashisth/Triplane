@@ -341,7 +341,7 @@ const Profile = () => {
                       <td>{b.packageId?.title}</td>
                       <td>{new Date(b.bookingDate).toLocaleDateString()}</td>
                       <td>{b.numberOfPeople}</td>
-                      <td>${b.totalPrice}</td>
+                      <td>₹{b.totalPrice}</td>
                       <td>
                         <select
                           className={`status-select ${b.status}`}
@@ -394,7 +394,7 @@ const Profile = () => {
                         </div>
                       </td>
                       <td>{p.location}</td>
-                      <td>${p.price}</td>
+                      <td>₹{p.price}</td>
                       <td>{p.duration}</td>
                       <td className="admin-actions">
                         <button className="admin-btn-icon btn-edit" onClick={() => handleEditPackage(p)}><i className="fas fa-edit"></i></button>
@@ -487,7 +487,7 @@ const Profile = () => {
                 <div className="form-group"><label>Location</label><input name="location" value={packageForm.location} onChange={handlePackageInputChange} required /></div>
               </div>
               <div className="form-group-row">
-                <div className="form-group"><label>Price ($)</label><input type="number" name="price" value={packageForm.price} onChange={handlePackageInputChange} required /></div>
+                <div className="form-group"><label>Price (₹)</label><input type="number" name="price" value={packageForm.price} onChange={handlePackageInputChange} required /></div>
                 <div className="form-group"><label>Duration</label><input name="duration" value={packageForm.duration} onChange={handlePackageInputChange} placeholder="e.g. 7 Days, 6 Nights" required /></div>
               </div>
               <div className="form-group-row">
