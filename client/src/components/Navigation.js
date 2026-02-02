@@ -5,7 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import './Navigation.css';
 
 const Navigation = () => {
-  const { user, isAuthenticated, logout, isAdmin } = useContext(AuthContext);
+  const { isAuthenticated, logout, isAdmin } = useContext(AuthContext);
   const { theme, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);

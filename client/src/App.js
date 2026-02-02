@@ -11,7 +11,6 @@ import Profile from './pages/Profile';
 import AddPackage from './pages/AddPackage';
 import AdminBookings from './pages/AdminBookings';
 import Packages from './pages/Packages';
-import VerifyOTP from './pages/VerifyOTP';
 import { ThemeProvider } from './context/ThemeContext';
 import './App.css';
 import './responsive.css';
@@ -20,7 +19,7 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Router>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <div className="App">
             <Navigation />
             <Routes>
@@ -28,7 +27,6 @@ function App() {
               <Route path="/packages" element={<Packages />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/verify-otp" element={<VerifyOTP />} />
               <Route path="/package/:id" element={<PackageDetails />} />
               <Route path="/about" element={<About />} />
               <Route path="/profile" element={<Profile />} />

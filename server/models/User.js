@@ -17,8 +17,12 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
+    required: function () { return !this.googleId; },
     minlength: [6, 'Password must be at least 6 characters']
+  },
+  googleId: {
+    type: String,
+    default: null
   },
   role: {
     type: String,
@@ -62,15 +66,7 @@ const userSchema = new mongoose.Schema({
   },
   isVerified: {
     type: Boolean,
-    default: false
-  },
-  otp: {
-    type: String,
-    default: null
-  },
-  otpExpires: {
-    type: Date,
-    default: null
+    default: true
   }
 }, {
   timestamps: true

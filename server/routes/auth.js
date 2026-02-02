@@ -30,55 +30,28 @@ router.post('/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Check if user exists
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Generate a 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
-
-    // Create user (Always as 'user', never admin from public registration)
     const user = await User.create({
       name,
       email,
       password,
       role: 'user',
-      otp,
-      otpExpires,
-      isVerified: false
+      isVerified: true
     });
 
     if (user) {
-      // Send OTP via email
-      try {
-        await sendEmail({
-          email: user.email,
-          subject: 'Triplane - Verify Your Account',
-          html: `
-            <div style="font-family: Arial, sans-serif; padding: 20px; color: #1e293b;">
-              <h2 style="color: #ff5a5f;">Welcome to Triplane!</h2>
-              <p>Your journey begins now. Please use the following code to verify your account:</p>
-              <div style="background: #f5f9ff; padding: 20px; border-radius: 12px; font-size: 2rem; font-weight: 800; text-align: center; letter-spacing: 10px; color: #2196f3; border: 1px solid #e2e8f0;">
-                ${otp}
-              </div>
-              <p style="margin-top: 20px;">This code will expire in 10 minutes.</p>
-              <p>Happy travels,<br>The Triplane Team</p>
-            </div>
-          `
-        });
-      } catch (emailError) {
-        console.error('Email could not be sent:', emailError);
-      }
-
-      console.log(`OTP for ${email}: ${otp}`);
-
       res.status(201).json({
-        message: 'Registration successful. Please verify your email with the OTP.',
-        email: user.email,
-        otp: process.env.NODE_ENV === 'development' ? otp : undefined // Only return OTP in dev
+        token: generateToken(user._id),
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        },
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
@@ -89,32 +62,33 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// @desc    Verify OTP
-// @route   POST /api/auth/verify-otp
+// @desc    Google Login
+// @route   POST /api/auth/google
 // @access  Public
-router.post('/verify-otp', async (req, res) => {
+router.post('/google-login', async (req, res) => {
   try {
-    const { email, otp } = req.body;
+    const { name, email, googleId, profilePhoto } = req.body;
 
-    const user = await User.findOne({ email });
+    let user = await User.findOne({ email });
 
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+    if (user) {
+      // If user exists but doesn't have googleId, update it
+      if (!user.googleId) {
+        user.googleId = googleId;
+        if (profilePhoto && !user.profilePhoto) user.profilePhoto = profilePhoto;
+        await user.save();
+      }
+    } else {
+      // Create new user
+      user = await User.create({
+        name,
+        email,
+        googleId,
+        profilePhoto,
+        isVerified: true,
+        password: Math.random().toString(36).slice(-10) // Random password for social users
+      });
     }
-
-    if (user.isVerified) {
-      return res.status(400).json({ message: 'User is already verified' });
-    }
-
-    if (user.otp !== otp || user.otpExpires < Date.now()) {
-      return res.status(400).json({ message: 'Invalid or expired OTP' });
-    }
-
-    // Mark as verified and clear OTP
-    user.isVerified = true;
-    user.otp = null;
-    user.otpExpires = null;
-    await user.save();
 
     res.json({
       token: generateToken(user._id),
@@ -131,62 +105,6 @@ router.post('/verify-otp', async (req, res) => {
         passportExpiry: user.passportExpiry,
         savedDestinations: user.savedDestinations
       },
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// @desc    Resend OTP
-// @route   POST /api/auth/resend-otp
-// @access  Public
-router.post('/resend-otp', async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    if (user.isVerified) {
-      return res.status(400).json({ message: 'User is already verified' });
-    }
-
-    // Generate new OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
-
-    user.otp = otp;
-    user.otpExpires = otpExpires;
-    await user.save();
-
-    // Send the new OTP
-    try {
-      await sendEmail({
-        email: user.email,
-        subject: 'Triplane - New Verification Code',
-        html: `
-          <div style="font-family: Arial, sans-serif; padding: 20px; color: #1e293b;">
-            <p>You requested a new verification code. Please use the code below:</p>
-            <div style="background: #f5f9ff; padding: 20px; border-radius: 12px; font-size: 2rem; font-weight: 800; text-align: center; letter-spacing: 10px; color: #2196f3; border: 1px solid #e2e8f0;">
-              ${otp}
-            </div>
-            <p style="margin-top: 20px;">This code will expire in 10 minutes.</p>
-          </div>
-        `
-      });
-    } catch (emailError) {
-      console.error('Email could not be sent:', emailError);
-    }
-
-    console.log(`New OTP for ${email}: ${otp}`);
-
-    res.json({
-      message: 'OTP resent successfully',
-      otp: process.env.NODE_ENV === 'development' ? otp : undefined
     });
   } catch (error) {
     console.error(error);

@@ -10,7 +10,6 @@ const Profile = () => {
   const [allBookings, setAllBookings] = useState([]);
   const [allPackages, setAllPackages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
   // Photo states
   const [uploading, setUploading] = useState(false);
@@ -63,7 +62,7 @@ const Profile = () => {
         fetchUserBookings();
       }
     }
-  }, [user]);
+  }, [user, isAdmin]);
 
   const fetchAdminData = async () => {
     try {
@@ -75,7 +74,7 @@ const Profile = () => {
       setAllPackages(packagesRes.data);
       setLoading(false);
     } catch (err) {
-      setError('Failed to fetch admin data');
+      console.error('Failed to fetch admin data:', err);
       setLoading(false);
     }
   };
@@ -86,7 +85,7 @@ const Profile = () => {
       setPersonalBookings(response.data);
       setLoading(false);
     } catch (err) {
-      setError('Failed to fetch bookings');
+      console.error('Failed to fetch bookings:', err);
       setLoading(false);
     }
   };
@@ -269,11 +268,11 @@ const Profile = () => {
             <div className="profile-stats-row">
               <div className="stat-box">
                 <div className="stat-icon trips"><i className="fas fa-plane"></i></div>
-                <div className="stat-text"><h3>{isAdmin() ? allBookings.length : personalBookings.length}</h3><span>{isAdmin() ? 'Total Bookings' : 'Trips Taken'}</span></div>
+                <div className="stat-text"><h3>{(isAdmin() ? (Array.isArray(allBookings) ? allBookings.length : 0) : (Array.isArray(personalBookings) ? personalBookings.length : 0))}</h3><span>{isAdmin() ? 'Total Bookings' : 'Trips Taken'}</span></div>
               </div>
               <div className="stat-box">
                 <div className="stat-icon saved"><i className="far fa-heart"></i></div>
-                <div className="stat-text"><h3>{isAdmin() ? allPackages.length : user?.savedDestinations?.length || 0}</h3><span>{isAdmin() ? 'Live Packages' : 'Saved Places'}</span></div>
+                <div className="stat-text"><h3>{isAdmin() ? (Array.isArray(allPackages) ? allPackages.length : 0) : (Array.isArray(user?.savedDestinations) ? user.savedDestinations.length : 0)}</h3><span>{isAdmin() ? 'Live Packages' : 'Saved Places'}</span></div>
               </div>
               <div className="stat-box">
                 <div className="stat-icon upcoming"><i className="fas fa-award"></i></div>
@@ -286,7 +285,7 @@ const Profile = () => {
                 <div className="dashboard-card">
                   <h2><i className="fas fa-paper-plane"></i> {isAdmin() ? 'Recent System Activity' : 'My Trips'}</h2>
                   <div className="history-list">
-                    {(isAdmin() ? allBookings.slice(0, 5) : personalBookings).map((booking) => (
+                    {(isAdmin() ? (Array.isArray(allBookings) ? allBookings.slice(0, 5) : []) : (Array.isArray(personalBookings) ? personalBookings : [])).map((booking) => (
                       <div key={booking._id} className="history-item">
                         <div className="history-thumb"><img src={booking.packageId?.image} alt="Tour" /></div>
                         <div className="history-details">
@@ -336,7 +335,7 @@ const Profile = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {allBookings.map(b => (
+                  {Array.isArray(allBookings) && allBookings.map(b => (
                     <tr key={b._id}>
                       <td><strong>{b.userId?.name}</strong><br /><small>{b.userId?.email}</small></td>
                       <td>{b.packageId?.title}</td>
@@ -386,7 +385,7 @@ const Profile = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {allPackages.map(p => (
+                  {Array.isArray(allPackages) && allPackages.map(p => (
                     <tr key={p._id}>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

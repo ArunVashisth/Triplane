@@ -30,7 +30,7 @@ const Home = () => {
     }
   };
 
-  const featuredPackages = packages.filter(pkg => pkg.featured).slice(0, 6);
+  const featuredPackages = Array.isArray(packages) ? packages.filter(pkg => pkg.featured).slice(0, 6) : [];
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });

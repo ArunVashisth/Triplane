@@ -7,7 +7,7 @@ import './PackageDetails.css';
 const PackageDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useContext(AuthContext);
+  const { isAuthenticated } = useContext(AuthContext);
 
   const [packageData, setPackageData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -22,24 +22,23 @@ const PackageDetails = () => {
   const [bookingError, setBookingError] = useState('');
 
   useEffect(() => {
+    const fetchPackageDetails = async () => {
+      try {
+        const response = await packageAPI.getPackageById(id);
+        setPackageData(response.data);
+        // Set default duration
+        setBookingForm(prev => ({
+          ...prev,
+          duration: response.data.duration
+        }));
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to fetch package details');
+        setLoading(false);
+      }
+    };
     fetchPackageDetails();
   }, [id]);
-
-  const fetchPackageDetails = async () => {
-    try {
-      const response = await packageAPI.getPackageById(id);
-      setPackageData(response.data);
-      // Set default duration
-      setBookingForm(prev => ({
-        ...prev,
-        duration: response.data.duration
-      }));
-      setLoading(false);
-    } catch (err) {
-      setError('Failed to fetch package details');
-      setLoading(false);
-    }
-  };
 
   const handleBookingChange = (e) => {
     const { name, value } = e.target;
@@ -71,7 +70,7 @@ const PackageDetails = () => {
         specialRequests: bookingForm.specialRequests
       };
 
-      const response = await bookingAPI.createBooking(bookingData);
+      await bookingAPI.createBooking(bookingData);
 
       alert('Booking created successfully!');
       navigate('/');

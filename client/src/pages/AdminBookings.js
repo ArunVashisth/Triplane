@@ -33,8 +33,8 @@ const AdminBookings = () => {
   const updateBookingStatus = async (bookingId, status) => {
     try {
       setError(''); // Clear any previous errors
-      const response = await bookingAPI.updateBookingStatus(bookingId, status);
-      
+      await bookingAPI.updateBookingStatus(bookingId, status);
+
       // Refresh the bookings list
       await fetchAllBookings();
       alert(`Booking ${status} successfully!`);
@@ -90,25 +90,25 @@ const AdminBookings = () => {
       <div className="bookings-stats">
         <div className="stat-card">
           <h3>Total Bookings</h3>
-          <span className="stat-number">{bookings.length}</span>
+          <span className="stat-number">{Array.isArray(bookings) ? bookings.length : 0}</span>
         </div>
         <div className="stat-card">
           <h3>Pending</h3>
-          <span className="stat-number pending">{bookings.filter(b => b.status === 'pending').length}</span>
+          <span className="stat-number pending">{Array.isArray(bookings) ? bookings.filter(b => b.status === 'pending').length : 0}</span>
         </div>
         <div className="stat-card">
           <h3>Confirmed</h3>
-          <span className="stat-number confirmed">{bookings.filter(b => b.status === 'confirmed').length}</span>
+          <span className="stat-number confirmed">{Array.isArray(bookings) ? bookings.filter(b => b.status === 'confirmed').length : 0}</span>
         </div>
         <div className="stat-card">
           <h3>Cancelled</h3>
-          <span className="stat-number cancelled">{bookings.filter(b => b.status === 'cancelled').length}</span>
+          <span className="stat-number cancelled">{Array.isArray(bookings) ? bookings.filter(b => b.status === 'cancelled').length : 0}</span>
         </div>
       </div>
 
       <div className="bookings-section">
         <h2>All Booking Requests</h2>
-        {bookings.length === 0 ? (
+        {(!Array.isArray(bookings) || bookings.length === 0) ? (
           <div className="no-bookings">
             <i className="fas fa-calendar-times"></i>
             <h3>No bookings found</h3>
@@ -116,7 +116,7 @@ const AdminBookings = () => {
           </div>
         ) : (
           <div className="bookings-grid">
-            {bookings.map((booking) => {
+            {Array.isArray(bookings) && bookings.map((booking) => {
               // Add null checks to prevent runtime errors
               if (!booking.packageId) {
                 return (
@@ -146,14 +146,14 @@ const AdminBookings = () => {
               return (
                 <div key={booking._id} className="booking-card">
                   <div className="booking-image">
-                    <img 
-                      src={booking.packageId.image || '/placeholder-image.jpg'} 
-                      alt={booking.packageId.title || 'Package Image'} 
+                    <img
+                      src={booking.packageId.image || '/placeholder-image.jpg'}
+                      alt={booking.packageId.title || 'Package Image'}
                       onError={(e) => {
                         e.target.src = '/placeholder-image.jpg';
                       }}
                     />
-                    <div 
+                    <div
                       className="status-badge"
                       style={{ backgroundColor: getStatusColor(booking.status) }}
                     >
@@ -166,7 +166,7 @@ const AdminBookings = () => {
                       <i className="fas fa-map-marker-alt"></i>
                       {booking.packageId.location || 'Location not specified'}
                     </p>
-                    
+
                     <div className="user-info">
                       <h4>User Information</h4>
                       <p><strong>Name:</strong> {booking.userId?.name || 'Unknown'}</p>
@@ -206,14 +206,14 @@ const AdminBookings = () => {
                     <div className="booking-actions">
                       {booking.status === 'pending' && (
                         <div className="action-buttons">
-                          <button 
+                          <button
                             className="btn-confirm"
                             onClick={() => updateBookingStatus(booking._id, 'confirmed')}
                           >
                             <i className="fas fa-check"></i>
                             Confirm Booking
                           </button>
-                          <button 
+                          <button
                             className="btn-cancel"
                             onClick={() => updateBookingStatus(booking._id, 'cancelled')}
                           >
@@ -222,10 +222,10 @@ const AdminBookings = () => {
                           </button>
                         </div>
                       )}
-                      
+
                       {booking.status === 'confirmed' && (
                         <div className="action-buttons">
-                          <button 
+                          <button
                             className="btn-complete"
                             onClick={() => updateBookingStatus(booking._id, 'completed')}
                           >

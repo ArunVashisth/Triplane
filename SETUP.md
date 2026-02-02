@@ -242,12 +242,26 @@ npm install
 
 ---
 
-## 🚀 Deployment
+## 🚀 Deployment & Live Fixes
 
-See original `README.md` for deployment instructions to:
-- Frontend: Vercel
-- Backend: Render
-- Database: MongoDB Atlas
+### 1. Front-end (Vercel)
+When deploying to Vercel, you **MUST** set the Environment Variables in the Vercel Dashboard:
+- `REACT_APP_API_URL`: Set this to your live backend URL (e.g., `https://your-api.onrender.com/api`)
+
+### 2. Back-end (Render/Railway)
+Set these variables in your hosting dashboard:
+- `MONGO_URI`: Your MongoDB Atlas string
+- `JWT_SECRET`: A long random string
+- `CLOUDINARY_CLOUD_NAME / API_KEY / API_SECRET`
+- `NODE_ENV`: production
+
+### ❌ Troubleshooting "Black/White Screen" on Live Site
+If you see a blank screen on the live site but it works locally:
+1. **Open Browser Console (F12)**: Check for `TypeError: e.filter is not a function`.
+2. **The Cause**: This usually means your frontend is trying to hit `localhost` instead of the live API, or the API is returning an error page instead of data.
+3. **The Fix**: 
+   - Ensure `REACT_APP_API_URL` is correctly set in Vercel.
+   - We have added "Guard Rails" in the code (v1.1) to prevent the site from crashing even if the API fails.
 
 ---
 

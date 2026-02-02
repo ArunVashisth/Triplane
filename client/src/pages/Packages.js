@@ -52,14 +52,16 @@ const Packages = () => {
     }
   };
 
-  const filteredPackages = selectedFilter === 'All'
-    ? packages
-    : packages.filter(pkg => {
-      const pkgContinent = pkg.continent || '';
-      const pkgLocation = pkg.location || '';
-      return pkgContinent.toLowerCase() === selectedFilter.toLowerCase() ||
-        pkgLocation.toLowerCase().includes(selectedFilter.toLowerCase());
-    });
+  const filteredPackages = !Array.isArray(packages)
+    ? []
+    : (selectedFilter === 'All'
+      ? packages
+      : packages.filter(pkg => {
+        const pkgContinent = pkg.continent || '';
+        const pkgLocation = pkg.location || '';
+        return pkgContinent.toLowerCase() === selectedFilter.toLowerCase() ||
+          pkgLocation.toLowerCase().includes(selectedFilter.toLowerCase());
+      }));
 
   return (
     <div className="packages-page">
