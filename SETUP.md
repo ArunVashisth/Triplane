@@ -65,7 +65,7 @@ npm run dev
 Terminal 2 (Client):
 ```powershell
 cd client
-npm start
+npm run dev
 ```
 
 **Access:** http://localhost:3000
@@ -120,7 +120,8 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret   # ← UPDATE THIS
 
 ### client/.env (Already configured)
 ```env
-REACT_APP_API_URL=http://localhost:5000/api
+VITE_API_URL=http://localhost:5000/api
+VITE_GOOGLE_CLIENT_ID=315064309220-cv4814fml56qc8defi6eiflip5tbtud9.apps.googleusercontent.com
 ```
 
 ---
@@ -246,7 +247,8 @@ npm install
 
 ### 1. Front-end (Vercel)
 When deploying to Vercel, you **MUST** set the Environment Variables in the Vercel Dashboard:
-- `REACT_APP_API_URL`: Set this to your live backend URL (e.g., `https://your-api.onrender.com/api`)
+- `VITE_API_URL`: Set this to your live backend URL (e.g., `https://your-api.onrender.com/api`)
+- `VITE_GOOGLE_CLIENT_ID`: Your Google OAuth Client ID
 
 ### 2. Back-end (Render/Railway)
 Set these variables in your hosting dashboard:
@@ -257,11 +259,11 @@ Set these variables in your hosting dashboard:
 
 ### ❌ Troubleshooting "Black/White Screen" on Live Site
 If you see a blank screen on the live site but it works locally:
-1. **Open Browser Console (F12)**: Check for `TypeError: e.filter is not a function`.
-2. **The Cause**: This usually means your frontend is trying to hit `localhost` instead of the live API, or the API is returning an error page instead of data.
+1. **Open Browser Console (F12)**: Check for `TypeError: e.filter is not a function` or `import.meta.env` errors.
+2. **The Cause**: This usually means your frontend is trying to hit `localhost` instead of the live API, or the environment variables are not correctly prefixed with `VITE_` in your hosting provider (Vercel/Netlify).
 3. **The Fix**: 
-   - Ensure `REACT_APP_API_URL` is correctly set in Vercel.
-   - We have added "Guard Rails" in the code (v1.1) to prevent the site from crashing even if the API fails.
+   - Ensure `VITE_API_URL` and `VITE_GOOGLE_CLIENT_ID` are correctly set in your deployment dashboard.
+   - Remember that Vite only exposes variables that start with `VITE_`.
 
 ---
 
