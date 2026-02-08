@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "https://triplane-vb3l.onrender.com/api";
+const API_BASE_URL = "https://triplane-vb3l.onrender.com/api";
 
 // Create axios instance with base URL
 const api = axios.create({
