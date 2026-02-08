@@ -127,7 +127,14 @@ const Packages = () => {
                 {filteredPackages.map(pkg => (
                   <div key={pkg._id} className="destination-card" onClick={() => navigate(`/package/${pkg._id}`)}>
                     <div className="card-image">
-                      <img src={pkg.image} alt={pkg.title} />
+                      <img 
+                        src={pkg.image} 
+                        alt={pkg.title} 
+                        onError={(e) => {
+                          e.target.onerror = null; 
+                          e.target.src = 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&q=80&w=1200';
+                        }}
+                      />
                       <div className="price-badge">₹{pkg.price}</div>
                       <div
                         className={`heart-btn ${user?.savedDestinations?.some(d => (d._id || d) === pkg._id) ? 'active' : ''}`}
